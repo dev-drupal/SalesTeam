@@ -1,0 +1,7 @@
+block.settings.sales_team_sales_team_map:
+  type: block_settings
+  label: 'Sales Team Map block'
+  mapping:
+    foo:
+      type: string
+      label: Foo

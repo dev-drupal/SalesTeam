@@ -1,0 +1,10 @@
+# Custom module library for general purposes.
+sales_team-js:
+  js:
+    js/svg-pan-zoom.js: {}
+    js/salesTeam.js: {}
+  css:
+    component:
+      css/salesTeam.css: {}
+  dependencies:
+    - core/drupalSettings

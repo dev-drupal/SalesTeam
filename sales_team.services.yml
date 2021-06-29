@@ -1,0 +1,4 @@
+services:
+  sales_team.getsalesteamdata:
+    class: Drupal\sales_team\Getsalesteamdata
+    arguments: ['@entity_type.manager']

@@ -1,0 +1,7 @@
+sales_team.example:
+  path: '/sales-team'
+  defaults:
+    _title: 'CONTACT OUR SALES TEAM'
+    _controller: '\Drupal\sales_team\Controller\SalesTeamController::build'
+  requirements:
+    _permission: 'access content'

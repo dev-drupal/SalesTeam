@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Sales Team module.
+ *
+ * @DCG
+ * This file is no longer required in Drupal 8.
+ * @see https://www.drupal.org/node/2217931
+ */
+
+function sales_team_page_attachments(array &$page) {
+  $callService = \Drupal::service('sales_team.getsalesteamdata');
+  $current_path = \Drupal::service('path.current')->getPath();
+  if($current_path == "/sales-team"){
+    $page['#attached']['library'][] = 'sales_team/sales_team-js';
+    $page['#attached']['drupalSettings']['salesTeamZones'] = $callService->getSalesTeamzone();
+    $page['#attached']['drupalSettings']['InternationalTeamzone'] = $callService->getInternationalTeamzone();
+  }
+}
