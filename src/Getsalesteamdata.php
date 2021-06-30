@@ -2,13 +2,14 @@
 
 namespace Drupal\sales_team;
 
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\node\NodeInterface;
 
 /**
- * Getsalesteamdata service.
+ * FETCH SALES TEAM CONTENT SERVICE.
  */
-class Getsalesteamdata{
+class Getsalesteamdata {
 
   /**
    * The entity type manager.
@@ -20,31 +21,30 @@ class Getsalesteamdata{
   /**
    * Constructs a new BranchLocationService object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The config factory.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager)
-  {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager) {
     $this->entityManager = $entityTypeManager;
   }
 
-  public function getSalesTeamzone()
-  {
+  /**
+   * Fetch Sales Team Zone Information.
+   */
+  public function getSalesTeamzone() {
     $custom_zone = $zone_list = [];
     $vid = 'sales_team_state';
     $terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vid);
     foreach ($terms as $term) {
-      $term_obj =  $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
+      $term_obj = $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
       if (!empty($term_obj) && isset($term_obj)) {
         $canada_zone = $term_obj->get('field_canada_state2')->getValue();
         foreach ($canada_zone as $zone) {
-          $zone_list[$term->name][] = "CA-".$zone['value'];
+          $zone_list[$term->name][] = "CA-" . $zone['value'];
         }
         $usa_zone = $term_obj->get('field_usa_state2')->getValue();
         foreach ($usa_zone as $zone) {
-          $zone_list[$term->name][] = "US-".$zone['value'];
+          $zone_list[$term->name][] = "US-" . $zone['value'];
         }
         $custom_zone[$term->name][] = implode(', ', $zone_list[$term->name]);
         $custom_zone[$term->name]['color'] = $term_obj->get('field_color_code')->value;
@@ -59,28 +59,35 @@ class Getsalesteamdata{
    * @param \Drupal\node\NodeInterface $node
    *   Sales node.
    *
-   * @return String
+   * @return string
    *   String of SalesTeamEmail
    */
-
-  public function getSalesTeamEmail(NodeInterface $node){
+  public function getSalesTeamEmail(NodeInterface $node) {
     return $node->get('field_email')->value;
   }
 
-  public function getSalesTeamZoneForEmail($email_flag)
-  {
+  /**
+   * Fetch Sales Team Zone Information with respect to email.
+   */
+  public function getSalesTeamZoneForEmail($email_flag) {
     $vid = 'sales_team_state';
     $email = "";
     $terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vid);
     foreach ($terms as $term) {
-      $term_obj =  $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
+      $term_obj = $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
+      $zone_conditon = [
+        'type' => 'sales_team',
+        'status' => 1,
+        'field_show_in_bottom' => 0,
+        'field_assigned_sales_zone' => $term->tid,
+      ];
       if (!empty($term_obj) && isset($term_obj)) {
         $canada_zone = $term_obj->get('field_canada_state2')->getValue();
         foreach ($canada_zone as $zone) {
-          if($zone['value'] == $email_flag){
+          if ($zone['value'] == $email_flag) {
             $nodes = $this->entityManager->getStorage('node')
-                    ->loadByProperties(['type' => 'sales_team', 'status' => 1, 'field_show_in_bottom' => 0,'field_assigned_sales_zone' => $term->tid]);
-            if(isset($nodes) && !empty($nodes)) {
+              ->loadByProperties($zone_conditon);
+            if (isset($nodes) && !empty($nodes)) {
               foreach ($nodes as $node) {
                 $email = $this->getSalesTeamEmail($node);
                 return $email;
@@ -90,10 +97,15 @@ class Getsalesteamdata{
         }
         $usa_zone = $term_obj->get('field_usa_state2')->getValue();
         foreach ($usa_zone as $zone) {
-          if($zone['value'] == $email_flag){
+          if ($zone['value'] == $email_flag) {
             $nodes = $this->entityManager->getStorage('node')
-                    ->loadByProperties(['type' => 'sales_team', 'status' => 1, 'field_show_in_bottom' => 0,'field_assigned_sales_zone' => $term->tid]);
-            if(isset($nodes) && !empty($nodes)) {
+              ->loadByProperties([
+                'type' => 'sales_team',
+                'status' => 1,
+                'field_show_in_bottom' => 0,
+                'field_assigned_sales_zone' => $term->tid,
+              ]);
+            if (isset($nodes) && !empty($nodes)) {
               foreach ($nodes as $node) {
                 $email = $this->getSalesTeamEmail($node);
                 return $email;
@@ -106,13 +118,15 @@ class Getsalesteamdata{
     return $email;
   }
 
-  public function getInternationalTeamzone()
-  {
+  /**
+   * Fetch Internation Sales Team Information.
+   */
+  public function getInternationalTeamzone() {
     $custom_zone = [];
     $vid = 'sales_team_country';
     $terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vid);
     foreach ($terms as $term) {
-      $term_obj =  $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
+      $term_obj = $this->entityManager->getStorage('taxonomy_term')->load($term->tid);
       if (!empty($term_obj) && isset($term_obj)) {
         $international_team_zone = $term_obj->get('field_territory_list')->getValue();
         foreach ($international_team_zone as $zone) {
@@ -125,11 +139,18 @@ class Getsalesteamdata{
     return $custom_zone;
   }
 
-  public function getSalesNode()
-  {
+  /**
+   * Fetch Sales Team Content to render at Bottom of Page.
+   */
+  public function getSalesNode() {
     $data = [];
+    $condition = [
+      'type' => 'sales_team',
+      'status' => 1,
+      'field_show_in_bottom' => 0,
+    ];
     $nodes = $this->entityManager->getStorage('node')
-    ->loadByProperties(['type' => 'sales_team', 'status' => 1, 'field_show_in_bottom' => 0]);
+      ->loadByProperties($condition);
     foreach ($nodes as $node) {
       $data[] = $this->getNodeData($node);
     }
@@ -145,10 +166,9 @@ class Getsalesteamdata{
    * @return array
    *   Array of node data.
    */
-  public function getNodeData(NodeInterface $node)
-  {
+  public function getNodeData(NodeInterface $node) {
     $sales_state = NULL;
-    $image = array();
+    $image = [];
     if (!$node->get('field_member_photo')->isEmpty()) {
       $image['uri'] = $node->get('field_member_photo')->entity->getFileUri();
       $image_attr = $node->get('field_member_photo')->getValue();
@@ -164,14 +184,14 @@ class Getsalesteamdata{
         $usa_lable_list = $zone_state->get('field_usa_state2')->getFieldDefinition()->getSetting('allowed_values');
         $canada_zone = $zone_state->get('field_canada_state2')->getValue();
 
-        foreach($canada_zone as $zone){
-          $sales_state[$i]['canada_label_state'][]= $canada_lable_list[$zone['value']];
+        foreach ($canada_zone as $zone) {
+          $sales_state[$i]['canada_label_state'][] = $canada_lable_list[$zone['value']];
           $sales_state[$i]['canada_state'][] = $zone['value'];
         }
 
         $usa_zone = $zone_state->get('field_usa_state2')->getValue();
-        foreach($usa_zone as $zone){
-          $sales_state[$i]['usa_label_state'][]= $usa_lable_list[$zone['value']];
+        foreach ($usa_zone as $zone) {
+          $sales_state[$i]['usa_label_state'][] = $usa_lable_list[$zone['value']];
           $sales_state[$i]['usa_state'][] = $zone['value'];
         }
 
@@ -193,18 +213,21 @@ class Getsalesteamdata{
       'color_code' => $color_code,
       'image' => isset($image['uri']) ? $image['uri'] : NULL,
       'alt' => isset($image['alt']) ? $image['alt'] : '',
-      'image_title' => isset($image['title']) ? $image['title'] : ''
+      'image_title' => isset($image['title']) ? $image['title'] : '',
     ];
   }
 
-
-  /* Code for International Sales team */
-
-  public function getInternationalSalesTeamNode()
-  {
+  /**
+   * Code for International Sales team.
+   */
+  public function getInternationalSalesTeamNode() {
     $data = [];
     $nodes = $this->entityManager->getStorage('node')
-    ->loadByProperties(['type' => 'international_sales_team', 'status' => 1, 'field_show_in_bottom' => 0]);
+      ->loadByProperties([
+        'type' => 'international_sales_team',
+        'status' => 1,
+        'field_show_in_bottom' => 0,
+      ]);
     foreach ($nodes as $node) {
       $data[] = $this->getNodeInternationalSalesTeam($node);
     }
@@ -220,10 +243,9 @@ class Getsalesteamdata{
    * @return array
    *   Array of Internation Team node data.
    */
-
-  public function getNodeInternationalSalesTeam(NodeInterface $node){
-    $country = $label = $color_code = array();
-    $image = array();
+  public function getNodeInternationalSalesTeam(NodeInterface $node) {
+    $country = $label = $color_code = [];
+    $image = [];
     if (!$node->get('field_member_photo')->isEmpty()) {
       $image['uri'] = $node->get('field_member_photo')->entity->getFileUri();
       $image_attr = $node->get('field_member_photo')->getValue();
@@ -231,7 +253,7 @@ class Getsalesteamdata{
       $image['title'] = $image_attr[0]['title'];
     }
 
-    $logo_image = array();
+    $logo_image = [];
     if (!$node->get('field_dealer_logo')->isEmpty()) {
       $logo_image['uri'] = $node->get('field_dealer_logo')->entity->getFileUri();
       $logo_image_attr = $node->get('field_dealer_logo')->getValue();
@@ -243,7 +265,7 @@ class Getsalesteamdata{
     foreach ($country_data as $value) {
       $country_code = $value->get('field_territory_list')->getValue();
       $label = $value->get('field_territory_list')->getFieldDefinition()->getSetting('allowed_values');
-      for ($i=0; $i < count($country_code) ; $i++) {
+      for ($i = 0; $i < count($country_code); $i++) {
         $country[$i]['code'] = $country_code[$i];
         $country[$i]['name'] = $label[$country_code[$i]['value']];
       }
@@ -257,8 +279,8 @@ class Getsalesteamdata{
     $url = $node->toUrl()->toString(TRUE);
     $paragraph_reprensentative = $node->field_reprensentative->getValue();
 
-    for ($i=0; $i < count($paragraph_reprensentative) ; $i++) {
-      $sales_reprensentative_data = \Drupal\paragraphs\Entity\Paragraph::load( $paragraph_reprensentative[$i]['target_id'] );
+    for ($i = 0; $i < count($paragraph_reprensentative); $i++) {
+      $sales_reprensentative_data = Paragraph::load($paragraph_reprensentative[$i]['target_id']);
       $sales_reprensentative[$i]['name'] = $sales_reprensentative_data->field_name->getValue();
       $sales_reprensentative[$i]['details'] = $sales_reprensentative_data->field_details->getValue();
     }
@@ -281,25 +303,26 @@ class Getsalesteamdata{
       'image' => isset($image['uri']) ? $image['uri'] : NULL,
       'logo_image' => isset($logo_image['uri']) ? $logo_image['uri'] : NULL,
       'alt' => isset($image['alt']) ? $image['alt'] : '',
-      'image_title' => isset($image['title']) ? $image['title'] : ''
+      'image_title' => isset($image['title']) ? $image['title'] : '',
     ];
   }
 
-  /*
-  * @param String $term_name
-  * 
-  * RetriveTerm name From URL
-  */
-  public function getProductCategory($term_name)
-  {
-    $term_id = null;
+  /**
+   * Retrive Term From URL.
+   *
+   * @param string $term_name
+   *   Product Category Term Name.
+   */
+  public function getProductCategory($term_name) {
+    $term_id = NULL;
     $vid = 'product_category';
     $terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vid);
     foreach ($terms as $term) {
-      if($term_name === $term->name){
+      if ($term_name === $term->name) {
         $term_id = $term->tid;
       }
     }
     return $term_id;
   }
+
 }

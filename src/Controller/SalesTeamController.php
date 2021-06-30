@@ -9,8 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Returns responses for Sales Team routes.
  */
-class SalesTeamController extends ControllerBase
-{
+class SalesTeamController extends ControllerBase {
   /**
    * Branch Location helper functions.
    *
@@ -21,49 +20,44 @@ class SalesTeamController extends ControllerBase
   /**
    * {@inheritdoc}
    */
-  public function __construct(Getsalesteamdata $salesServiceData)
-  {
+  public function __construct(Getsalesteamdata $salesServiceData) {
     $this->salesServiceData = $salesServiceData;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container)
-  {
+  public static function create(ContainerInterface $container) {
     $salesServiceData = $container->get('sales_team.getsalesteamdata');
     return new static($salesServiceData);
   }
 
   /**
-   * Invoke Function to get Slaes Node Data
-   *
+   * Invoke Function to get Slaes Node Data.
    */
-
-  public function getSalesTeamData()
-  {
+  public function getSalesTeamData() {
     $data = [];
     $data['data'] = $this->salesServiceData->getSalesNode();
     return $data;
   }
 
-  public function getInternationalSalesTeamData()
-  {
+  /**
+   * Retrive International Team Data to Render on Page .
+   */
+  public function getInternationalSalesTeamData() {
     $data = [];
     $data['data'] = $this->salesServiceData->getInternationalSalesTeamNode();
     return $data;
   }
-  /**
-   * Build Html Structure with Sales team Data
-   *
-   */
 
-  public function createHTMLStructure()
-  {
+  /**
+   * Build Html Structure with Sales team Data.
+   */
+  public function fetchSalesTeamStructure() {
     $data = $this->getSalesTeamData();
     $html = '<div class="sales-team-member-content"><h2> Sales Team </h2><div class="sales-team-member-wrapper"><div class="sales-team-member"> ';
     foreach ($data["data"] as $salesTeamMember) {
-      $data_ca = $data_us = array();
+      $data_ca = $data_us = [];
       foreach ($salesTeamMember["selected_states"] as $key => $canada_state) {
         foreach ($canada_state as $key => $value) {
           if ($key == "canada_state") {
@@ -90,7 +84,7 @@ class SalesTeamController extends ControllerBase
       $html .= '<div class="row"><div class="col-md-12"><div class="team-member" data="' . $state_final . '">';
       $html .= '<div class="team-image">';
       $html .= '<div class="color-box-section div-count-' . count($salesTeamMember['color_code']) . '">';
-      $zone_color = array();
+      $zone_color = [];
       foreach ($salesTeamMember['color_code'] as $country_color) {
         foreach ($country_color as $color_code) {
           foreach ($color_code as $value) {
@@ -117,7 +111,8 @@ class SalesTeamController extends ControllerBase
               foreach ($statename as $key => $finalstate) {
                 if (++$d === $numItems) {
                   $html .= $finalstate;
-                } else {
+                }
+                else {
                   $html .= $finalstate . ', ';
                 }
               }
@@ -132,7 +127,8 @@ class SalesTeamController extends ControllerBase
                 }
                 if (++$d === $numItems) {
                   $html .= $finalstate;
-                } else {
+                }
+                else {
                   $html .= $finalstate . ', ';
                 }
               }
@@ -149,13 +145,14 @@ class SalesTeamController extends ControllerBase
     return $html;
   }
 
-
-  public function createHTMLStructureInternationalTeam()
-  {
+  /**
+   * Creating HTML Structure for International Team.
+   */
+  public function fetchInternationalTeamStructure() {
     $data = $this->getInternationalSalesTeamData();
     $html = '<div class="international-sales-team-content"><h2> International Sales Team </h2><div class="sales-team-member-wrapper international-sales-team-wrapper"><div class="sales-team-member international-sales-team"> ';
     foreach ($data["data"] as $internationalsalesTeamMember) {
-      $data_attribute = $data_label = array();
+      $data_attribute = $data_label = [];
       foreach ($internationalsalesTeamMember["selected_country"] as $country_array) {
         $data_attribute[] = $country_array["code"]["value"];
         $data_label[] = $country_array["name"];
@@ -163,10 +160,11 @@ class SalesTeamController extends ControllerBase
 
       if (isset($internationalsalesTeamMember["logo_image"])) {
         $html .= '<div class="row"><div class="col-md-12"><div class="team-member team-with-image international-team-member" data="' . implode(", ", $data_attribute) . '">';
-      } else {
+      }
+      else {
         $html .= '<div class="row"><div class="col-md-12"><div class="team-member international-team-member" data="' . implode(", ", $data_attribute) . '">';
       }
-      
+
       $html .= '<div class="member-detail-block">';
 
       if (isset($internationalsalesTeamMember["logo_image"])) {
@@ -219,7 +217,7 @@ class SalesTeamController extends ControllerBase
         }
         $html .= '</div>';
       }
-      
+
       if (isset($internationalsalesTeamMember['custom_territory']) && !empty($internationalsalesTeamMember['custom_territory'])) {
         $html .= '<div class="international-team-territory"><strong>Territory:</strong> ' . $internationalsalesTeamMember['custom_territory'] . '</div>';
       }
@@ -233,12 +231,10 @@ class SalesTeamController extends ControllerBase
   /**
    * Builds the response.
    */
-
-  public function build()
-  {
+  public function build() {
     $data = '<div class="sales-team-content">';
-    $data .= $this->createHTMLStructure();
-    $data .= $this->createHTMLStructureInternationalTeam();
+    $data .= $this->fetchSalesTeamStructure();
+    $data .= $this->fetchInternationalTeamStructure();
     $data .= '</div>';
 
     $build['content'] = [
@@ -248,4 +244,5 @@ class SalesTeamController extends ControllerBase
 
     return $build;
   }
+
 }

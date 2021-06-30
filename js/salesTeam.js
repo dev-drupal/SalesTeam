@@ -80,7 +80,7 @@ jQuery(document).on("click", ".worldwide-map-menu", function (e) {
     onPan: function () {},
     customEventsHandler: {},
     eventsListenerElement: null,
-  });  
+  });
 });
 
 jQuery(".team-member").each(function () {
@@ -166,7 +166,7 @@ jQuery(".usa-canada-map path,.usa-canada-map g").each(function () {
     var height = (y * 100) / jQuery(".usa-canada-map svg").height();
     var width = (x * 100) / jQuery(".usa-canada-map svg").width();
     tooltip.style.display = "block";
-    if((width>66) && (saleswidth < 990)){
+    if((width > 66) && (saleswidth < 990)){
       tooltip.style.left = "45%";
     }else{
       tooltip.style.left = width - 10 + "%";
@@ -271,7 +271,7 @@ jQuery(".world-map path").each(function () {
     var width = (x * 100) / jQuery(".world-map svg").width();
     if((saleswidth < 990) || (isFirefox)){
       tooltip.style.left = "46%";
-      tooltip.style.top =  "50%";
+      tooltip.style.top = "50%";
     } else {
       tooltip.style.left = width + "%";
       tooltip.style.top = height + "%";
